@@ -20,7 +20,6 @@ Triple-negative breast cancer (TNBC) is a heterogeneous disease with varying res
 | code/meta_analysis    | Logistic regression/Cox regression and Meta analysis |
 | code/pathway_analysis | ORA analysis                                         |
 | code/utility          | Functions used for analysis                          |
-| Results               | Meta analysis results                                |
 
 
 

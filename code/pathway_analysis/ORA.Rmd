@@ -1,0 +1,245 @@
+---
+title: "ORA -- clusterProfile"
+author: "Wei Zhang"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    highlight: pygments
+    theme: yeti
+    toc: true
+    number_sections: true
+    df_print: paged
+    code_download: false
+    toc_float:
+      collapsed: yes
+    toc_depth: 3
+    font_size: 10
+editor_options:
+  chunk_output_type: inline 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+dir.base <- "../../"
+dir.results <- file.path(dir.base, "Results/")
+dir.results.genelist <- file.path(dir.results, "gene_list/")
+dir.results.ora <- file.path(dir.results, "ORA_clusterProfile/")
+dir.results.ora.plot <- file.path(dir.results.ora, "plot/")
+#dir.create(dir.results.ora.plot)
+```
+
+# Load package and results
+
+```{r message = F}
+library(msigdbr)
+library(clusterProfiler)
+library(tidyverse)
+library(enrichplot)
+```
+
+```{r}
+genelist <- list.files(
+  path = dir.results.genelist,
+  pattern = "q1|q2|q3|q4",
+  full.names = T
+) %>% purrr::map(~read.table(.))
+names(genelist) <- stringr::str_extract( toupper(list.files(
+  path = dir.results.genelist,
+  pattern = "q1|q2|q3|q4",
+  full.names = T
+)),"Q1|Q2|Q3|Q4")
+names(genelist)[1] <- "Q1_stringent"
+```
+
+## Get C2CP Pathways
+
+```{r}
+c2.cp.biocarta <- msigdbr(species = "Homo sapiens", category = "C2", subcategory ="BIOCARTA")
+c2.cp.kegg     <- msigdbr(species = "Homo sapiens", category = "C2", subcategory ="KEGG")
+c2.cp.reactome <- msigdbr(species = "Homo sapiens", category = "C2", subcategory ="REACTOME")
+c2.cp.wiki     <- msigdbr(species = "Homo sapiens", category = "C2", subcategory ="WIKIPATHWAYS")
+c2.cp.pid      <- msigdbr(species = "Homo sapiens", category = "C2", subcategory ="PID")
+c2.cp <- rbind (c2.cp.biocarta, c2.cp.kegg, c2.cp.reactome, c2.cp.wiki, c2.cp.pid)
+pathway.df <- c2.cp %>% dplyr::select(gs_name, human_gene_symbol)
+```
+
+# ORA
+
+## Q1 genelist
+
+```{r}
+Q1.ora <- enricher(
+  gene = genelist$Q1$V1,
+  TERM2GENE = pathway.df
+)
+```
+
+```{r fig.width=10, fig.height=16, echo = F}
+ggpubr::ggarrange(
+  barplot(Q1.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10)),
+  dotplot(Q1.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10)),
+  nrow = 2
+)
+```
+
+```{r}
+dotplot(Q1.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10))
+ggsave(file.path(dir.results.ora.plot, "Q1_dot_plot.pdf"),width = 10,height = 10)
+```
+
+```{r}
+cnetplot(Q1.ora, circular = TRUE, colorEdge = TRUE)
+ggsave(file.path(dir.results.ora.plot, "Q1_cnet_plot.pdf"),width = 10,height = 8)
+```
+
+
+
+```{r}
+### Save results
+writexl::write_xlsx(
+  Q1.ora@result,
+  file.path(dir.results.ora, "ORA_for_Q1_results.xlsx")
+)
+```
+
+### Stringent criterion
+
+```{r}
+Q1.ora.stringent <- enricher(
+  gene = genelist$Q1_stringent$V1,
+  TERM2GENE = pathway.df
+)
+```
+
+```{r fig.width=10, fig.height=16, echo = F}
+ggpubr::ggarrange(
+  barplot(Q1.ora.stringent, showCategory=18) + theme(axis.text.y = element_text(size = 10)),
+  dotplot(Q1.ora.stringent, showCategory=18) + theme(axis.text.y = element_text(size = 10)),
+  nrow = 2
+)
+```
+
+
+```{r}
+dotplot(Q1.ora.stringent, showCategory=18) + theme(axis.text.y = element_text(size = 10))
+ggsave(file.path(dir.results.ora.plot, "Q1_stringent_dot_plot.pdf"),width = 10,height = 10)
+```
+
+```{r fig.width=10,fig.height = 8}
+cnetplot(Q1.ora.stringent, colorEdge = TRUE)
+ggsave(file.path(dir.results.ora.plot, "Q1_stringent_cnet_plot.pdf"),width = 10,height = 8)
+```
+
+```{r}
+### Save results
+writexl::write_xlsx(
+  Q1.ora@result,
+  file.path(dir.results.ora, "ORA_for_Q1_stringent_results.xlsx")
+)
+```
+
+
+## Q2 genelist
+
+```{r}
+Q2.ora <- enricher(
+  gene = genelist$Q2$V1,
+  pvalueCutoff = 0.25,
+  TERM2GENE = pathway.df
+)
+```
+
+```{r}
+dotplot(Q2.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10))
+ggsave(file.path(dir.results.ora.plot, "Q2_dot_plot.pdf"),width = 10,height = 10)
+```
+
+```{r}
+### Save results
+writexl::write_xlsx(
+  Q2.ora@result,
+  file.path(dir.results.ora, "ORA_for_Q2_results.xlsx")
+)
+```
+
+
+
+## Q3 genelist
+
+```{r}
+Q3.ora <- enricher(
+  gene = genelist$Q3$V1,
+  TERM2GENE = pathway.df,
+  pvalueCutoff = 0.25
+)
+```
+
+```{r fig.width=8, fig.height=6, echo = F}
+ggpubr::ggarrange(
+  barplot(Q3.ora, showCategory=20) + theme(axis.text.y = element_text(size = 10)),
+  dotplot(Q3.ora, showCategory=20) + theme(axis.text.y = element_text(size = 10)),
+  nrow = 2
+)
+```
+
+```{r}
+dotplot(Q3.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10))
+ggsave(file.path(dir.results.ora.plot, "Q3_dot_plot.pdf"), width = 10,height = 10)
+```
+
+```{r fig.width=10,fig.height = 8}
+cnetplot(Q3.ora, colorEdge = TRUE)
+ggsave(file.path(dir.results.ora.plot, "Q3_cnet_plot.pdf"),width = 10,height = 8)
+```
+
+```{r}
+### Save results
+writexl::write_xlsx(
+  Q3.ora@result,
+  file.path(dir.results.ora, "ORA_for_Q3_results.xlsx")
+)
+```
+
+
+## Q4 genelist
+
+```{r}
+Q4.ora <- enricher(
+  gene = genelist$Q4$V1,
+  TERM2GENE = pathway.df,
+  pvalueCutoff = 0.25
+)
+```
+
+```{r fig.width=8, fig.height=4, echo = F}
+ggpubr::ggarrange(
+  barplot(Q4.ora, showCategory=20) + theme(axis.text.y = element_text(size = 10)),
+  dotplot(Q4.ora, showCategory=20) + theme(axis.text.y = element_text(size = 10)),
+  nrow = 2
+)
+```
+
+```{r}
+dotplot(Q4.ora, showCategory=18) + theme(axis.text.y = element_text(size = 10))
+ggsave(file.path(dir.results.ora.plot, "Q4_dot_plot.pdf"), width = 10,height = 4)
+```
+
+```{r fig.width=10,fig.height = 8}
+cnetplot(Q4.ora, colorEdge = TRUE)
+ggsave(file.path(dir.results.ora.plot, "Q4_cnet_plot.pdf"),width = 10,height = 8)
+```
+
+```{r}
+### Save results
+writexl::write_xlsx(
+  Q4.ora@result,
+  file.path(dir.results.ora, "ORA_for_Q4_results.xlsx")
+)
+```
+
+# Session Information
+
+```{r}
+devtools::session_info()
+```
+
