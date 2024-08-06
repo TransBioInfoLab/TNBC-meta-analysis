@@ -4,7 +4,7 @@ Wei Zhang,  Emma Li, Lily Wang, Brian D. Lehmann, and X. Steven Chen
 
 This github repository includes scripts used for the analyses in the above manuscript.
 
-
+**Cite this article:** Zhang, W., Li, E., Wang, L., Lehmann, B. D., & Chen, X. S. (2023). Transcriptome Meta-Analysis of Triple-Negative Breast Cancer Response to Neoadjuvant Chemotherapy. Cancers, 15(8), 2194. https://doi.org/10.3390/cancers15082194
 
 ## Abstract
 
